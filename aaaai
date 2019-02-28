@@ -2,6 +2,7 @@ package client;
 
 import client.model.*;
 
+import java.awt.*;
 import java.util.Random;
 
 public class AI
@@ -14,25 +15,36 @@ public class AI
         System.out.println("pre process started");
     }
 
-
     public void pickTurn(World world)
     {
         System.out.println("pick started");
-        world.pickHero(HeroName.values()[2]);
-        System.out.println(world.getCurrentTurn());
+        world.pickHero(HeroName.BLASTER);
     }
 
     public void moveTurn(World world)
     {
         System.out.println("move started");
         Hero[] heroes = world.getMyHeroes();
+        Map map = world.getMap();
+        Cell[] objectiveZone = map.getObjectiveZone();
+        for (Hero hero : heroes) {
+            if (hero == heroes[0] && hero.getCurrentCell() != objectiveZone[5]){
+                Direction[] shortestWay = world.getPathMoveDirections(hero.getCurrentCell(),objectiveZone[5]);
+                world.moveHero(hero, shortestWay[0]);
+            }
+            if (hero == heroes[1] && hero.getCurrentCell() != objectiveZone[10]){
+                Direction[] shortestWay = world.getPathMoveDirections(hero.getCurrentCell(),objectiveZone[10]);
+                world.moveHero(hero, shortestWay[0]);
+            }
+            if (hero == heroes[2] && hero.getCurrentCell() != objectiveZone[15]){
+                Direction[] shortestWay = world.getPathMoveDirections(hero.getCurrentCell(),objectiveZone[15]);
+                world.moveHero(hero, shortestWay[0]);
+            }
+            if (hero == heroes[3] && hero.getCurrentCell() != objectiveZone[20]){
+                Direction[] shortestWay = world.getPathMoveDirections(hero.getCurrentCell(),objectiveZone[20]);
+                world.moveHero(hero, shortestWay[0]);
+            }
 
-        for (Hero hero : heroes)
-        {
-            Map map = world.getMap();
-            Cell[] cells = map.getObjectiveZone();
-            Direction[] directions = world.getPathMoveDirections(hero.getCurrentCell(),cells[1]);
-            world.moveHero(hero, directions[0]);
         }
     }
 
@@ -42,10 +54,47 @@ public class AI
         Map map = world.getMap();
         for (Hero hero : heroes)
         {
-            int row = random.nextInt(map.getRowNum());
-            int column = random.nextInt(map.getColumnNum());
+            Hero[] enemy = world.getOppHeroes();
+            for (Hero oppHero : enemy){
+                if (hero.getCurrentCell().getColumn()-oppHero.getCurrentCell().getColumn()+
+                    hero.getCurrentCell().getRow()-oppHero.getCurrentCell().getRow() <= 1){
+                    if(hero.getName() == HeroName.BLASTER){
+                        world.castAbility(hero,AbilityName.BLASTER_ATTACK,oppHero.getCurrentCell());
+                    }
+                    if(hero.getName() == HeroName.SENTRY){
+                        world.castAbility(hero,AbilityName.SENTRY_ATTACK,oppHero.getCurrentCell());
+                    }
+                    if(hero.getName() == HeroName.HEALER){
+                        world.castAbility(hero,AbilityName.HEALER_ATTACK,oppHero.getCurrentCell());
+                    }
+                    if(hero.getName() == HeroName.GUARDIAN){
+                        world.castAbility(hero,AbilityName.GUARDIAN_ATTACK,oppHero.getCurrentCell());
+                    }
+                }
+                if(hero.getName() == HeroName.BLASTER){
+                    world.castAbility(hero,AbilityName.BLASTER_BOMB,oppHero.getCurrentCell());
+                }
+                if(hero.getName() == HeroName.SENTRY && (hero.getCurrentCell().getRow() == oppHero.getCurrentCell().getRow() && hero.getCurrentCell().getColumn() - oppHero.getCurrentCell().getColumn() <= 5 )
+                    || (hero.getCurrentCell().getColumn() == oppHero.getCurrentCell().getColumn() && hero.getCurrentCell().getRow() - oppHero.getCurrentCell().getRow() <= 5 )){
+                    world.castAbility(hero,AbilityName.SENTRY_RAY,oppHero.getCurrentCell());
+                }
 
-            world.castAbility(hero, hero.getAbilities()[random.nextInt(3)], row, column);
+            }
+            if(hero.getName() == HeroName.HEALER){
+            for (Hero injuredHero : heroes){
+                if (injuredHero.getMaxHP()-injuredHero.getCurrentHP()>40){
+                        world.castAbility(hero,AbilityName.HEALER_HEAL,injuredHero.getCurrentCell());
+                    }
+                }
+            }
+            for (Hero needFortify : heroes){
+                if(hero.getName() == HeroName.GUARDIAN){
+                    world.castAbility(hero,AbilityName.GUARDIAN_FORTIFY,needFortify.getCurrentCell());
+                }
+            }
+
+
+
         }
     }
 
